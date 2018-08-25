@@ -26,7 +26,7 @@ class TaskController {
     func createTask(name: String, description: String) {
         let createdTask = Task(name: name, description: description)
         tasks.append(createdTask)
-        
+        save()
     }
     //Read
     
@@ -36,7 +36,7 @@ class TaskController {
         existingTask.description = NewDescription
         existingTask.timeStamp = newTimeStamp
         existingTask.isComplete = isComplete
-        
+        save()
         
         
     }
@@ -46,6 +46,7 @@ class TaskController {
         if let indexOfTaskBeingDeleted = tasks.index(of: task) {
             tasks.remove(at: indexOfTaskBeingDeleted)
         }
+        save()
         
         
     }
@@ -59,18 +60,42 @@ class TaskController {
     // Persistance
     
     func save(){
+        let encoder = JSONEncoder()
+        
+        do {
+            let data = try encoder.encode(tasks)
+            try data.write(to: fileURL())
+        } catch {
+            print("Error Saving to Persistance: \(error.localizedDescription)")
+        }
 
     }
     
     func loadTask(){
+        let decoder = JSONDecoder()
+        
+        do {
+            let data = try Data(contentsOf: fileURL())
+            let decodedTasks = try decoder.decode([Task].self, from: data)
+            self.tasks = decodedTasks
+            
+            
+        } catch {
+            print("Error Loding Data fromPesistance: \(error.localizedDescription)")
+        }
+        
         
     }
     
-//    func fileURL() -> URL {
-//
-//
-//    }
-//
+    //Get URL From FileMAnager
+    func fileURL() -> URL {
+        let urls = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        let fileName = "Task.json"
+        let documentDirectoryURL = urls[0].appendingPathComponent(fileName)
+        return documentDirectoryURL
+
+    }
+
     
     
     
